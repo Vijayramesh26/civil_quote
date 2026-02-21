@@ -1,532 +1,1182 @@
 <template>
-  <v-app class="bg-grey-lighten-5">
-    <v-container fluid class="pa-4 pa-md-8">
-      
-      <div class="text-center mb-8">
-        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2" style="color: #356aca;">
-          Construction Estimate
-        </h1>
-        <p class="text-subtitle-1 text-grey-darken-1">
-          Project Specification Sheet
-        </p>
+  <v-app class="app-container">
+    <!-- Premium App Bar -->
+    <v-app-bar
+      elevation="0"
+      class="px-md-8 border-b glass-header"
+      color="rgba(255, 255, 255, 0.8)"
+      height="90"
+    >
+      <div class="d-flex align-center">
+        <div class="logo-box mr-4 elevation-3 overflow-hidden d-flex align-center justify-center bg-white">
+          <v-img src="/logo.png" cover width="52" height="52"></v-img>
+        </div>
+        <div>
+          <h1 class="text-h5 font-weight-black text-slate mb-0 tracking-tight">
+            URU<span class="text-gold">DHI</span>
+          </h1>
+          <div class="d-flex align-center mt-n1">
+            <div class="status-dot mr-2"></div>
+            <p class="text-caption text-grey-darken-1 font-weight-black uppercase-tracking-small">
+              Premium Project Estimator
+            </p>
+          </div>
+        </div>
       </div>
+      <v-spacer></v-spacer>
+      <div class="d-none d-md-flex align-center mr-6">
+        <div class="text-right">
+          <div class="text-caption text-grey-darken-1 font-weight-bold">QUOTATION DATE</div>
+          <div class="text-subtitle-2 font-weight-black text-slate">
+            {{ store.client.date || 'NOT SET' }}
+          </div>
+        </div>
+      </div>
+      <v-btn
+        color="#c5a059"
+        variant="elevated"
+        class="text-white px-8 d-none d-md-flex premium-btn"
+        height="50"
+        rounded="xl"
+        prepend-icon="mdi-file-export"
+        @click="exportPdf"
+        :disabled="!isFormValid"
+      >
+        GENERATE QUOTE
+      </v-btn>
+    </v-app-bar>
 
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-card elevation="2" class="rounded-lg h-100 border">
-            <div class="pa-4 d-flex align-center text-white" style="background-color: #356aca;">
-              <v-icon icon="mdi-domain" class="mr-3"></v-icon>
-              <span class="text-h6 font-weight-bold">Company</span>
-            </div>
+    <v-main class="main-content">
+      <!-- Sophisticated Background Pattern -->
+      <div class="bg-pattern"></div>
 
-            <v-card-text class="pa-5">
-              <v-row dense>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.companyName"
-                    label="Company Name"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    hide-details="auto"
-                    class="mb-4"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.ownerName"
-                    label="Owner Name"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    hide-details="auto"
-                    class="mb-4"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="form.phone"
-                    label="Phone Number"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    hide-details="auto"
-                    class="mb-4"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-textarea
-                    v-model="form.companyAddress"
-                    label="Address"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    rows="3"
-                    auto-grow
-                    hide-details="auto"
-                  ></v-textarea>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card elevation="2" class="rounded-lg h-100 border">
-            <div class="pa-4 d-flex align-center text-white" style="background-color: #5d7887;">
-              <v-icon icon="mdi-account" class="mr-3"></v-icon>
-              <span class="text-h6 font-weight-bold">Client</span>
-            </div>
-
-            <v-card-text class="pa-5">
-              <v-row dense>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.client"
-                    label="Client Name"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    hide-details="auto"
-                    class="mb-4"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.date"
-                    type="date"
-                    label="Date"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    hide-details="auto"
-                    class="mb-4"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-textarea
-                    v-model="form.site"
-                    label="Site Address"
-                    variant="outlined"
-                    density="comfortable"
-                    bg-color="white"
-                    rows="3"
-                    auto-grow
-                    hide-details="auto"
-                  ></v-textarea>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-row class="mt-4">
-        <v-col cols="12">
-          <v-card elevation="2" class="rounded-lg border">
-            <div class="d-flex align-center justify-space-between pa-5 border-bottom">
-              <h2 class="text-h5 font-weight-bold text-grey-darken-3">
-                Floor Specifications
-              </h2>
-              <v-btn
-                color="#356aca"
-                class="text-white px-6"
-                elevation="2"
-                @click="addFloor"
-              >
-                <v-icon start>mdi-plus</v-icon> ADD FLOOR
-              </v-btn>
-            </div>
-            
-            <v-card-text class="pa-4 bg-grey-lighten-5">
-              <div v-if="form.floors.length === 0" class="text-center py-6 text-grey">
-                No floors added yet. Click "Add Floor" to begin.
-              </div>
-
-              <div v-for="(floor, i) in form.floors" :key="i" class="mb-3">
-                <v-card variant="outlined" class="bg-white">
-                  <v-card-text class="pa-3">
-                    <v-row dense align="center">
-                      <v-col cols="12" sm="4">
-                        <v-text-field v-model="floor.name" label="Floor Name" placeholder="e.g. Ground Floor" variant="plain" density="compact" hide-details class="font-weight-bold"></v-text-field>
+      <v-container class="py-12 px-4 px-md-12 maxWidth-xl position-relative">
+        <v-row>
+          <!-- Left Column: Form Details -->
+          <v-col cols="12" lg="8">
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-card class="premium-card" elevation="0">
+                  <SectionHeader
+                    title="Entity Information"
+                    subtitle="Provider Details"
+                    icon="mdi-shield-check"
+                  />
+                  <v-card-text class="pt-2 px-6 pb-6">
+                    <v-text-field
+                      v-model="store.company.name"
+                      label="Company Name"
+                      variant="outlined"
+                      density="comfortable"
+                      class="mb-4 rounded-xl"
+                      bg-color="white"
+                      hide-details
+                    ></v-text-field>
+                    <v-row dense>
+                      <v-col cols="12">
+                        <v-text-field
+                          v-model="store.company.owner"
+                          label="Proprietor"
+                          variant="outlined"
+                          density="comfortable"
+                          hide-details
+                          class="mb-4 sm-mb-0 rounded-xl"
+                          bg-color="white"
+                        ></v-text-field>
                       </v-col>
-                      <v-divider vertical class="mx-2 d-none d-sm-flex"></v-divider>
-                      <v-col cols="6" sm="3">
-                        <v-text-field v-model.number="floor.sqft" label="Sq.ft" type="number" variant="plain" density="compact" suffix="ft²" hide-details></v-text-field>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.company.phone"
+                          label="Primary Contact"
+                          variant="outlined"
+                          density="comfortable"
+                          hide-details
+                          class="rounded-xl"
+                          bg-color="white"
+                        ></v-text-field>
                       </v-col>
-                      <v-col cols="6" sm="3">
-                        <v-text-field v-model.number="floor.rate" label="Rate" type="number" variant="plain" density="compact" prefix="₹" hide-details></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="1" class="d-flex justify-end">
-                        <v-btn icon color="red" variant="text" size="small" @click="removeFloor(i)">
-                          <v-icon>mdi-delete</v-icon>
-                        </v-btn>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.company.phone2"
+                          label="Secondary Contact"
+                          variant="outlined"
+                          density="comfortable"
+                          hide-details
+                          class="rounded-xl"
+                          bg-color="white"
+                        ></v-text-field>
                       </v-col>
                     </v-row>
+                    <v-textarea
+                      v-model="store.company.address"
+                      label="Registered Address"
+                      variant="outlined"
+                      rows="3"
+                      hide-details
+                      class="mt-4 rounded-xl"
+                      bg-color="white"
+                    ></v-textarea>
+
+                    <div class="mt-6">
+                      <v-file-input
+                        label="Override Brand Identity"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-image-plus-outline"
+                        prepend-icon=""
+                        accept="image/*"
+                        @change="handleLogoUpload"
+                        hide-details
+                        class="logo-upload"
+                      ></v-file-input>
+                    </div>
                   </v-card-text>
                 </v-card>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+              </v-col>
 
-      <v-row class="mt-4">
-        <v-col cols="12">
-          <v-card elevation="2" class="rounded-lg border">
-            <div class="pa-4 d-flex align-center bg-blue-grey-lighten-5 text-blue-grey-darken-4">
-               <v-icon icon="mdi-tools" class="mr-2"></v-icon>
-               <span class="text-h6 font-weight-bold">Material Selection</span>
+              <v-col cols="12" md="6">
+                <v-card class="premium-card" elevation="0">
+                  <SectionHeader
+                    title="Project Details"
+                    subtitle="Client Specifications"
+                    icon="mdi-account-group"
+                  />
+                  <v-card-text class="pt-2 px-6 pb-6">
+                    <v-text-field
+                      v-model="store.client.name"
+                      label="Client Entity"
+                      variant="outlined"
+                      density="comfortable"
+                      class="mb-4 rounded-xl"
+                      bg-color="white"
+                      hide-details
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.client.date"
+                      label="Proposal Date"
+                      type="date"
+                      variant="outlined"
+                      density="comfortable"
+                      class="mb-4 rounded-xl"
+                      bg-color="white"
+                      hide-details
+                    ></v-text-field>
+                    <v-textarea
+                      v-model="store.client.site"
+                      label="Site Location"
+                      variant="outlined"
+                      rows="3"
+                      hide-details
+                      class="rounded-xl"
+                      bg-color="white"
+                    ></v-textarea>
+                    <div class="mt-5 d-flex align-center text-grey-darken-1">
+                      <v-icon icon="mdi-map-marker-radius-outline" size="18" class="mr-2"></v-icon>
+                      <span class="text-caption font-weight-bold uppercase-tracking-small"
+                        >Ensure site address is precise</span
+                      >
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Floor Specifications -->
+            <v-card class="premium-card mt-8" elevation="0">
+              <SectionHeader
+                title="Architectural Floors"
+                subtitle="Build Volumes"
+                icon="mdi-layers-triple"
+              >
+                <template #action>
+                  <v-menu>
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="flat"
+                        color="#c5a059"
+                        size="small"
+                        rounded="lg"
+                        prepend-icon="mdi-plus"
+                        class="text-white px-4 font-weight-black"
+                      >
+                        ADD FLOOR
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="name in ['First Floor', 'Second Floor', 'Head Room', 'Custom']"
+                        :key="name"
+                        @click="addFloorWithName(name)"
+                      >
+                        <v-list-item-title>{{ name }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+              </SectionHeader>
+
+              <v-card-text class="px-6 pb-6">
+                <div
+                  v-if="store.floors.length === 0"
+                  class="text-center py-12 bg-white rounded-xl border-dashed"
+                >
+                  <v-icon
+                    icon="mdi-file-document-plus-outline"
+                    size="64"
+                    color="grey-lighten-3"
+                  ></v-icon>
+                  <p class="text-grey-darken-1 mt-4 font-weight-bold">
+                    Initialize your estimate by adding a floor volume.
+                  </p>
+                  <v-btn
+                    variant="outlined"
+                    color="gold"
+                    class="mt-4"
+                    prepend-icon="mdi-plus"
+                    @click="store.addFloor"
+                    >Begin Assessment</v-btn
+                  >
+                </div>
+
+                <div class="floor-list">
+                  <FloorItem
+                    v-for="(floor, index) in store.floors"
+                    :key="index"
+                    v-model="store.floors[index]"
+                    @remove="store.removeFloor(index)"
+                  />
+                </div>
+              </v-card-text>
+            </v-card>
+
+            <!-- Comprehensive Material Selection -->
+            <v-card class="premium-card mt-8" elevation="0">
+              <SectionHeader
+                title="Technical Specifications"
+                subtitle="Quality & Material Standards"
+                icon="mdi-palette-swatch"
+              />
+              <v-card-text class="px-6 pb-6">
+                <v-row>
+                  <!-- Structural -->
+                  <v-col cols="12" md="4">
+                    <div class="group-header mb-4">
+                      <v-icon icon="mdi-hard-hat" color="gold" size="18" class="mr-2"></v-icon>
+                      <span>STRUCTURAL</span>
+                    </div>
+                    <v-text-field
+                      v-model="store.materials.concreteGrade"
+                      label="Concrete Grade"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.concreteBrand"
+                      label="Concrete Brand"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.steelBrand"
+                      label="Steel Brand/Grade"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.sandType"
+                      label="Sand Specification"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.brickPrice"
+                      label="Brick Quality/Rate"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.cementBrands"
+                      label="Cement Selection"
+                      variant="outlined"
+                      density="compact"
+                    ></v-text-field>
+                  </v-col>
+
+                  <!-- Finishing: Tiles & Paint -->
+                  <v-col cols="12" md="4">
+                    <div class="group-header mb-4">
+                      <v-icon icon="mdi-brush" color="gold" size="18" class="mr-2"></v-icon>
+                      <span>FINISHING & TILES</span>
+                    </div>
+                    <v-text-field
+                      v-model="store.materials.paintInterior"
+                      label="Interior Palette"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.paintExterior"
+                      label="Exterior Protection"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-row dense>
+                      <v-col cols="7">
+                        <v-text-field
+                          v-model="store.materials.vitrifiedSize"
+                          label="Vitrified Size"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="5">
+                        <v-text-field
+                          v-model.number="store.materials.vitrifiedRate"
+                          label="Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-row dense>
+                      <v-col cols="7">
+                        <v-text-field
+                          v-model="store.materials.bathWallHeight"
+                          label="Bath Wall Ht"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="5">
+                        <v-text-field
+                          v-model.number="store.materials.bathFloorRate"
+                          label="Floor Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+
+                  <!-- Plumbing & Electrical -->
+                  <v-col cols="12" md="4">
+                    <div class="group-header mb-4">
+                      <v-icon
+                        icon="mdi-lightning-bolt"
+                        color="gold"
+                        size="18"
+                        class="mr-2"
+                      ></v-icon>
+                      <span>SYSTEMS</span>
+                    </div>
+                    <v-text-field
+                      v-model="store.materials.electricalBrand"
+                      label="Wire Brand"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-row dense>
+                      <v-col cols="7">
+                        <v-text-field
+                          v-model="store.materials.switchBrand"
+                          label="Switch Brand"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="5">
+                        <v-text-field
+                          v-model.number="store.materials.switchRate"
+                          label="Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-text-field
+                      v-model="store.materials.cpvcBrand"
+                      label="CPVC Pipe Brand"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="store.materials.wastePipeBrand"
+                      label="Waste Pipe Brand"
+                      variant="outlined"
+                      density="compact"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+
+                <v-divider class="my-6"></v-divider>
+
+                <v-row>
+                  <!-- Woodwork & Hardware -->
+                  <v-col cols="12" md="6">
+                    <div class="group-header mb-4">
+                      <v-icon icon="mdi-door" color="gold" size="18" class="mr-2"></v-icon>
+                      <span>WOOD & OPENINGS</span>
+                    </div>
+                    <v-row dense>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.materials.woodMaterial"
+                          label="Main Door Wood"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.materials.mainDoorFrameSize"
+                          label="Frame Size"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.materials.shutterThickness"
+                          label="Shutter Thick"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="store.materials.doorLockCompany"
+                          label="Lock Company"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model.number="store.materials.mortiseLockRate"
+                          label="Mortise Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model.number="store.materials.toiletDoorRate"
+                          label="Toilet Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model="store.materials.loftWidth"
+                          label="Loft Width"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model="store.materials.kitchenStone"
+                          label="Kitchen Stone Type"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-text-field
+                          v-model.number="store.materials.kitchenStoneRate"
+                          label="Stone Rate"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+
+                  <!-- Extra Work Costing -->
+                  <v-col cols="12" md="6">
+                    <div class="group-header mb-4">
+                      <v-icon icon="mdi-currency-inr" color="gold" size="18" class="mr-2"></v-icon>
+                      <span>EXTRA WORK & OTHERS</span>
+                    </div>
+                    <v-row dense>
+                      <v-col cols="12">
+                        <v-text-field
+                          v-model="store.materials.staircaseHandrail"
+                          label="Staircase Specification"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-textarea
+                          v-model="store.materials.workNotIncluded"
+                          label="Exclusions / Not Included"
+                          variant="outlined"
+                          density="compact"
+                          rows="3"
+                          class="mb-2"
+                        ></v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.ugSumpBrick"
+                          label="UG Sump Brick/L"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.ugSumpTile"
+                          label="UG Sump Tiles/L"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.septicTank"
+                          label="Septic Tank/L"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.weatheringRate"
+                          label="Weathering/Sqft"
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-2"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.compoundWall4_5"
+                          label='Wall 4.5" RFT'
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="store.materials.compoundWall9"
+                          label='Wall 9" RFT'
+                          prefix="₹"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <!-- Right Column: Summary & Payment -->
+          <v-col cols="12" lg="4">
+            <div class="sticky-sidebar">
+              <!-- Valuation Card -->
+              <v-card class="valuation-card mb-8 shadow-premium" elevation="0">
+                <div class="valuation-body pa-8">
+                  <div class="d-flex justify-space-between align-center mb-1">
+                    <span class="text-overline font-weight-black text-slate-light letter-spacing-2"
+                      >Project Total</span
+                    >
+                    <v-icon icon="mdi-seal-variant" color="#c5a059" size="24"></v-icon>
+                  </div>
+                  <div class="text-h3 font-weight-black text-slate mb-6 tabular-nums">
+                    {{ store.formattedTotalAmount }}
+                  </div>
+
+                  <v-divider class="mb-6"></v-divider>
+
+                  <v-row no-gutters>
+                    <v-col cols="6" class="border-e pr-4">
+                      <div
+                        class="text-caption font-weight-bold text-slate-light uppercase-tracking-small mb-1"
+                      >
+                        Total Coverage
+                      </div>
+                      <div class="text-h6 font-weight-black text-slate">
+                        {{ totalSqft }}
+                        <span class="text-caption font-weight-bold text-slate-light">SQ.FT</span>
+                      </div>
+                    </v-col>
+                    <v-col cols="6" class="pl-6">
+                      <div
+                        class="text-caption font-weight-bold text-slate-light uppercase-tracking-small mb-1"
+                      >
+                        Avg per Sq.ft
+                      </div>
+                      <div class="text-h6 font-weight-black text-slate">₹{{ avgRate }}</div>
+                    </v-col>
+                  </v-row>
+                </div>
+                <!-- Preview Action -->
+                <div class="pa-4 bg-slate-soft text-center border-t">
+                  <v-btn
+                    variant="text"
+                    block
+                    color="#c5a059"
+                    class="font-weight-black"
+                    prepend-icon="mdi-file-eye-outline"
+                    @click="handlePreview"
+                  >
+                    PREVIEW QUOTE PDF
+                  </v-btn>
+                </div>
+                <div class="valuation-footer pa-4 text-center">
+                  <span class="text-caption font-weight-black text-white-70 letter-spacing-1"
+                    >OFFICIAL PROJECT ASSESSMENT</span
+                  >
+                </div>
+              </v-card>
+
+              <!-- Preview Dialog -->
+              <v-dialog v-model="showPreview" maxWidth="900" height="90vh">
+                <v-card class="rounded-xl overflow-hidden d-flex flex-column" height="100%">
+                  <v-card-title class="d-flex align-center py-4 px-6 bg-white border-b">
+                    <div>
+                      <span class="text-h6 font-weight-black text-slate">DOCUMENT PREVIEW</span>
+                      <p class="text-caption text-grey-darken-1 mb-0 mt-n1">
+                        Review your generated quotation before finalizing
+                      </p>
+                    </div>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      icon="mdi-close"
+                      variant="tonal"
+                      @click="showPreview = false"
+                      density="comfortable"
+                    ></v-btn>
+                  </v-card-title>
+
+                  <v-card-text class="pa-0 bg-grey-lighten-4 flex-grow-1">
+                    <iframe
+                      v-if="previewPdfUrl"
+                      :src="previewPdfUrl"
+                      width="100%"
+                      height="100%"
+                      style="border: none"
+                    ></iframe>
+                    <div v-else class="d-flex align-center justify-center h-100">
+                      <v-progress-circular indeterminate color="#c5a059"></v-progress-circular>
+                    </div>
+                  </v-card-text>
+
+                  <v-card-actions class="pa-6 bg-white border-t">
+                    <v-btn variant="text" class="px-6 font-weight-bold" @click="showPreview = false"
+                      >CANCEL</v-btn
+                    >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="#c5a059"
+                      variant="flat"
+                      class="text-white px-8 font-weight-black"
+                      rounded="xl"
+                      prepend-icon="mdi-download"
+                      @click="exportPdf"
+                    >
+                      DOWNLOAD FINAL PDF
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
+              <!-- Escrow Card -->
+              <v-card class="premium-card mb-8" elevation="0">
+                <SectionHeader
+                  title="Escrow Terms"
+                  subtitle="Invoicing Milestones"
+                  icon="mdi-handshake-outline"
+                />
+                <v-card-text class="px-6 pb-6">
+                  <div class="payment-timeline">
+                    <div
+                      class="payment-step"
+                      v-for="(val, key) in store.paymentSchedule"
+                      :key="key"
+                    >
+                      <div class="step-line"></div>
+                      <div class="step-indicator"></div>
+                      <div class="step-content">
+                        <div class="d-flex justify-space-between align-center">
+                          <span
+                            class="text-caption font-weight-black text-slate-light text-uppercase tracking-wider"
+                            >{{ key }}</span
+                          >
+                          <div class="d-flex align-center">
+                            <input
+                              type="number"
+                              :value="store.paymentSchedule[key]"
+                              @input="updatePayment(key, $event.target.value, $event)"
+                              class="compact-input"
+                              min="0"
+                              max="100"
+                            />
+                            <span class="ml-1 text-caption font-weight-bold text-grey">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <v-divider class="my-6"></v-divider>
+
+                  <div
+                    class="pa-4 bg-slate-soft rounded-xl d-flex justify-space-between align-center"
+                  >
+                    <div>
+                      <div
+                        class="text-caption font-weight-black text-grey-darken-1 uppercase-tracking-small"
+                      >
+                        TOTAL ALLOCATION
+                      </div>
+                      <div class="text-h6 font-weight-black text-slate">
+                        {{ totalPercent }}% / 100%
+                      </div>
+                    </div>
+                    <v-progress-circular
+                      :model-value="totalPercent"
+                      :color="
+                        totalPercent === 100 ? 'success' : totalPercent > 100 ? 'error' : 'orange'
+                      "
+                      size="42"
+                      width="6"
+                    ></v-progress-circular>
+                  </div>
+
+                  <div
+                    v-if="totalPercent !== 100"
+                    class="mt-4 pa-3 rounded-lg bg-orange-lighten-5 d-flex align-center"
+                  >
+                    <v-icon
+                      icon="mdi-alert-circle-outline"
+                      color="orange"
+                      size="20"
+                      class="mr-3"
+                    ></v-icon>
+                    <span class="text-caption font-weight-bold text-orange-darken-3">
+                      Allocation must be exactly 100% (Current: {{ totalPercent }}%)
+                    </span>
+                  </div>
+                </v-card-text>
+              </v-card>
             </div>
-            
-            <v-card-text class="pa-5">
-              <h4 class="text-overline text-primary mb-2">Structural</h4>
-              <v-row dense>
-                <v-col cols="12" md="4"><v-text-field v-model="form.sandType" label="Sand Type" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="12" md="4"><v-text-field v-model="form.brickPrice" label="Brick Price" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="12" md="4"><v-text-field v-model="form.cementBrands" label="Cement Brands" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-              </v-row>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
 
-              <v-divider class="my-4"></v-divider>
-
-              <h4 class="text-overline text-primary mb-2">Finishing & Electrical</h4>
-              <v-row dense>
-                <v-col cols="6" md="3"><v-text-field v-model="form.electricalBrand" label="Electrical Brand" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="6" md="3"><v-text-field v-model="form.switchBrand" label="Switch Brand" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="6" md="3"><v-text-field v-model="form.paintExterior" label="Ext. Paint" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="6" md="3"><v-text-field v-model="form.paintInterior" label="Int. Paint" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-              </v-row>
-
-               <v-divider class="my-4"></v-divider>
-
-               <h4 class="text-overline text-primary mb-2">Woodwork & Stone</h4>
-               <v-row dense>
-                <v-col cols="6" md="3"><v-text-field v-model="form.woodMaterial" label="Wood Material" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="6" md="3"><v-text-field v-model="form.woodQuality" label="Wood Quality" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="12" md="3"><v-text-field v-model="form.doorLockCompany" label="Lock Brand" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-                <v-col cols="6" md="3"><v-text-field v-model="form.kitchenStone" label="Kitchen Stone" variant="outlined" density="compact" bg-color="white"></v-text-field></v-col>
-               </v-row>
-            </v-card-text>
-          </v-card>
+    <!-- Mobile Bottom Navigation for Quick Actions -->
+    <v-footer
+      app
+      v-if="$vuetify.display.xs"
+      class="pa-4 glass-footer border-t"
+      color="rgba(255, 255, 255, 0.9)"
+    >
+      <v-row no-gutters align="center">
+        <v-col cols="7">
+          <div class="text-caption font-weight-bold text-grey-darken-1 mb-n1">TOTAL ESTIMATE</div>
+          <div class="text-h5 font-weight-black text-slate">{{ store.formattedTotalAmount }}</div>
+        </v-col>
+        <v-col cols="5">
+          <v-btn
+            block
+            color="gold-dark"
+            height="48"
+            rounded="lg"
+            class="text-white font-weight-black shadow-sm"
+            @click="exportPdf"
+            :disabled="!isFormValid"
+          >
+            GENERATE
+          </v-btn>
         </v-col>
       </v-row>
-
-      <v-row class="mt-4 mb-16">
-        <v-col cols="12">
-          <v-card elevation="2" class="rounded-lg border">
-            <div class="pa-4 d-flex align-center bg-green-lighten-5 text-green-darken-4">
-               <v-icon icon="mdi-cash-multiple" class="mr-2"></v-icon>
-               <span class="text-h6 font-weight-bold">Payment Schedule (%)</span>
-            </div>
-            
-            <v-card-text class="pa-5">
-              <v-row dense>
-                <v-col cols="6" md="2"><v-text-field v-model="form.lintel" label="To Lintel" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="6" md="2"><v-text-field v-model="form.roof" label="To Roof" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="6" md="2"><v-text-field v-model="form.innerPlaster" label="In. Plaster" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="6" md="2"><v-text-field v-model="form.outerPlaster" label="Out. Plaster" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="6" md="2"><v-text-field v-model="form.tiles" label="Flooring" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="6" md="2"><v-text-field v-model="form.wiringPaint" label="Paint/Elec" suffix="%" variant="underlined" density="compact"></v-text-field></v-col>
-                <v-col cols="12" class="mt-2">
-                   <v-text-field v-model="form.final" label="Final Handover" suffix="%" variant="outlined" density="compact" color="success" class="font-weight-bold"></v-text-field>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-row justify="center" class="mt-2 mb-10">
-        <v-btn
-          color="success"
-          size="x-large"
-          rounded="pill"
-          width="350"
-          elevation="4"
-          @click="generatePDF"
-        >
-          <v-icon start>mdi-file-pdf-box</v-icon>
-          Generate PDF
-        </v-btn>
-      </v-row>
-
-    </v-container>
+    </v-footer>
   </v-app>
 </template>
 
 <script>
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { useEstimateStore } from './stores/estimate'
+import { generateEstimatePDF } from './services/pdfService'
+import SectionHeader from './components/SectionHeader.vue'
+import FloorItem from './components/FloorItem.vue'
 
 export default {
-  data() {
-    return {
-      form: {
-         companyName: "VIGNESH ENGINEERING AND INTERIORS",
-        ownerName: "Mr. VIGNESH PANDIYAN",
-        phone: "+91 99405 50471",
-        companyAddress: "No:3/25, Periyar Salai, Thirumalai Nagar, Ramapuram, Chennai – 600089",
+  components: {
+    SectionHeader,
+    FloorItem,
+  },
+  setup() {
+    const store = useEstimateStore()
+    return { store }
+  },
+  computed: {
+    totalSqft() {
+      return this.store.floors.reduce((sum, f) => sum + (f.sqft || 0), 0)
+    },
+    avgRate() {
+      if (this.totalSqft === 0) return 0
+      return Math.round(this.store.totalAmount / this.totalSqft)
+    },
+    totalPercent() {
+      return Object.values(this.store.paymentSchedule).reduce(
+        (sum, val) => sum + (Number(val) || 0),
+        0,
+      )
+    },
+    isFormValid() {
+      const hasClient = !!this.store.client.name
+      const hasFloors = this.store.floors.length > 0
+      const floorsValid = this.store.floors.every((f) => f.sqft > 0 && f.rate > 0)
+      const paymentValid = this.totalPercent === 100
 
-        client: "",
-        site: "",
-        date: "",
-
-        floors: [
-          { name: "Ground Floor", sqft: 580, rate: 2400 }
-        ],
-        parapetIncluded: true,
-        sandType: "",
-        brickPrice: "",
-        cementBrands: "",
-        electricalBrand: "",
-        switchBrand: "",
-        paintExterior: "",
-        paintInterior: "",
-        woodMaterial: "",
-        woodQuality: "",
-        doorLockCompany: "",
-        shutterThickness: "",
-        kitchenStone: "",
-        kitchenStoneRate: 0,
-        lintel: 0,
-        roof: 0,
-        innerPlaster: 0,
-        outerPlaster: 0,
-        tiles: 0,
-        wiringPaint: 0,
-        final: 0,
-        logo: null,
-      },
-    };
+      return hasClient && hasFloors && floorsValid && paymentValid
+    },
   },
   methods: {
-
-    addFloor() {
-      this.form.floors.push({ name: "", sqft: 0, rate: 0 });
+    addFloorWithName(name) {
+      if (name === 'Custom') {
+        this.store.addFloor()
+      } else {
+        this.store.floors.push({ name: name, sqft: 0, rate: 0 })
+      }
     },
-    removeFloor(i) {
-      this.form.floors.splice(i, 1);
+    handleLogoUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      const reader = new FileReader()
+      reader.onload = () => {
+        this.store.updateLogo(reader.result)
+      }
+      reader.readAsDataURL(file)
     },
-onLogoUpload(files) {
-  if (!files) return;
+    exportPdf() {
+      generateEstimatePDF(this.store.$state)
+    },
+    handlePreview() {
+      this.previewPdfUrl = generateEstimatePDF(this.store.$state, 'dataurl')
+      this.showPreview = true
+    },
+    updatePayment(key, value, event) {
+      const num = Math.floor(Number(value) || 0)
+      const othersTotal = Object.entries(this.store.paymentSchedule)
+        .filter(([k]) => k !== key)
+        .reduce((sum, [_, v]) => sum + (Number(v) || 0), 0)
 
-  // Vuetify returns array
-  const file = Array.isArray(files) ? files[0] : files;
+      const allowed = Math.max(0, 100 - othersTotal)
+      const finalValue = Math.min(num, allowed)
 
-  if (!(file instanceof Blob)) return;
+      this.store.paymentSchedule[key] = finalValue
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.form.logo = reader.result; // base64
-  };
-  reader.readAsDataURL(file);
-},
-
-generatePDF() {
- const f = this.form;
-      const doc = new jsPDF("p", "pt", "a4");
-      const pageWidth = doc.internal.pageSize.width;
-      let y = 60;
-
-  /* ===== HEADER ===== */
-      const header = async () => {
-        if (f.logo) {
-          // const img = await this.toBase64(f.logo);
-          doc.addImage(f.logo, "PNG", 40, 20, 50, 50);
-        }
-        doc.setFont("times", "bold");
-        doc.setFontSize(14);
-        doc.text(f.companyName, pageWidth / 2, 25, { align: "center" });
-        doc.setFontSize(10);
-        doc.text(`${f.ownerName} | ${f.phone}`, pageWidth / 2, 40, { align: "center" });
-        doc.line(30, 45, pageWidth - 30, 45);
-      };
-
-     const footer = () => {
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
-  
-  // 🔹 LINE ABOVE FOOTER
-  doc.setLineWidth(0.5);
-  doc.line(
-    30,                     // start X
-    pageHeight - 35,        // start Y (above footer)
-    pageWidth - 30,         // end X
-    pageHeight - 35         // end Y
-  );
-  // 🔹 FOOTER TEXT
-  doc.setFontSize(9);
-  doc.text(
-    f.companyAddress,
-    pageWidth / 2,
-    pageHeight - 20,
-    { align: "center" }
-  );
-};
-
-const signature=()=>{
-doc.setFont("times", "bold");
-   doc.text("PARTY SIGNATURE", 50, pageHeight - 50);
-      doc.text("CONTRACTOR SIGNATURE", pageWidth-200, pageHeight - 50);
-};
-
-
-const pageHeight = doc.internal.pageSize.height;
-
-const addNewPage = () => {
-  footer();          // ✅ close current page
-  doc.addPage();     // ➕ new page
-  header();          // 🧾 header on new page
-  y = 60;            // reset cursor
-};
-
-
-  // const sectionTitle = (text) => {
-  //   doc.setFont("times", "bold");
-  //   doc.setFontSize(12);
-  //   if (y > doc.internal.pageSize.height - 60) {
-  //     doc.addPage();
-  //     y = 60;
-  //     header();
-  //   }
-  //   doc.text(text, 40, y);
-  //   y += 15;
-  // };
-  const sectionTitle = (text) => {
-  doc.setFont("times", "bold"); 
-//text underline 
-  if (y > pageHeight - 80) {
-    addNewPage();
-  }
-doc.setFontSize(12);
-  doc.text(text, 40, y);
-  y += 15;
-};
-
-
-  // const paragraph = (text) => {
-  //   doc.setFont("times", "normal");
-  //   doc.setFontSize(10);
-  //   const lines = doc.splitTextToSize(text, pageWidth - 80);
-  //   if (y + lines.length * 12 > doc.internal.pageSize.height - 40) {
-  //     doc.addPage();
-  //     y = 60;
-  //     header();
-  //   }
-  //   doc.text(lines, 40, y);
-  //   y += lines.length * 12 + 10;
-  // };
-const paragraph = (text) => {
-  doc.setFont("times", "normal");
-  doc.setFontSize(10);
-
-  const lines = doc.splitTextToSize(text, pageWidth - 80);
-
-  for (let i = 0; i < lines.length; i++) {
-    if (y > pageHeight - 45) {
-      addNewPage();
+      // If user tried to go higher than allowed, manually reset the input field
+      if (event && event.target && Number(event.target.value) !== finalValue) {
+        event.target.value = finalValue
+      }
+    },
+  },
+  data() {
+    return {
+      showPreview: false,
+      previewPdfUrl: null,
     }
-    doc.text(lines[i], 40, y);
-    y += 14; // line spacing
-  }
-
-  y += 8;
-};
-
-  header();
-
-  
-      /* ===== FIRST PAGE ===== */
-      doc.setFontSize(12);
-      doc.text("BUILDING WORK QUOTATION", pageWidth / 2, y, { align: "center" });
-      y += 30;
-
-      doc.setFontSize(10);
-      doc.text(`SITE: ${f.site}`, 40, y);
-      doc.text(`DATE: ${f.date}`, pageWidth - 160, y);
-      y += 20;
-      doc.text(`CLIENT: ${f.client}`, 40, y);
-      y += 30;
-
-     doc.setFont("times", "normal");
-const leftMargin = 40;
-const rightMargin = 40; 
-const textWidth = pageWidth - leftMargin - rightMargin;
-
-doc.text(
-  `Dear Sir / Madam,
-
-We offer our lowest rate and amount to construct a residential building with the following specifications and conditions. We assure quality materials, skilled workmanship, and timely completion of work.`,
-  leftMargin,
-  y,
-  { maxWidth: textWidth, lineHeightFactor: 1.4 }
-);
-
-     y += 60;
-     doc.setFont("times", "bold");
-      autoTable(doc, {
-        startY: y,
-        theme: "grid",
-        head: [["Floor", "Sq.ft", "Rate", "Amount"]],
-        body: f.floors.map(fl => [
-          fl.name,
-          fl.sqft,
-          `Rs.${fl.rate}`,
-          `Rs.${(fl.sqft * fl.rate).toLocaleString()}`
-        ])
-      });
-
-      y = doc.lastAutoTable.finalY + 30;
-
-   
-signature();
-      footer();
-
-      /* ===== SECOND PAGE ===== */
-      doc.addPage();
-      header();
-      y = 70;
-
-
-  // ================= SECTIONS =================
-  const sections = [
-    { title: "Terms & Conditions", content: `• Any change in wood work, tile flooring, architectural design or items not covered in this agreement will be charged separately.\n• Contract period is maximum 4 months for one floor.\n• Balance materials brought by contractor after completion will be taken back by contractor.` },
-    { title: "Tiles Specification", content: `• Vitrified tiles (${f.vitrifiedSize}) @ Rs.${f.vitrifiedRate}/Sq.ft\n• Bathroom flooring ceramic tiles @ Rs.${f.bathFloorRate}/Sq.ft\n• Bathroom wall tiles glazed tiles up to ${f.bathWallHeight}\n• WC wall tiles glazed up to 3 feet\n• Kitchen wall tiles glazed up to 2 feet\n• Kitchen platform ${f.kitchenStone} @ Rs.${f.kitchenStoneRate}/Sq.ft\n• Additional tile cost if any will be borne by customer.` },
-    { title: "Loft & Cupboard", content: `• One side loft of width ${f.loftWidth} in all bedrooms and kitchen\n• Black Kadappa stone cupboard on one side in all bedrooms and kitchen.` },
-    { title: "Plumbing", content: `• Concealed plumbing using CPVC pipes (${f.cpvcBrand}) for hot and cold water\n• 4 inch PVC for soil line and 2 inch PVC (${f.wastePipeBrand}) for waste water\n• Heater provision provided in all bathrooms\n• Standard CP fittings provided` },
-    { title: "Toilet & Kitchen Fittings", content: `• EWC (White), Wash basin (White), Stainless steel sink\n• Waterman CP fittings in all bathrooms and kitchen\n• Colour sanitary ware will be charged extra` },
-    { title: "Windows & Shutters", content: `• UPVC windows with MS grill\n• Shutter thickness: ${f.shutterThickness}` },
-    { title: "Doors & Wood Work", content: `• Main door frame size ${f.mainDoorFrameSize} using ${f.woodMaterial}\n• Main door shutter with polish finish\n• Other doors flush doors with enamel painting\n• Toilet door WPVC @ Rs.${f.toiletDoorRate}\n• Mortise lock @ Rs.${f.mortiseLockRate}\n• Door lock brands: ${f.doorLockCompany}` },
-    { title: "Painting", content: `• Exterior: White cement 1 coat + ${f.paintExterior} 2 coats\n• Interior: White cement 1 coat + putty 2 coats + ${f.paintInterior} 2 coats\n• Ceiling: White cement + white paint` },
-    { title: "Staircase Handrail", content: `• MS square bar with GI pipe handrail\n• Steps finished with rough plastering` },
-    { title: "Work Process & Materials Used", content: `• Concrete: M20 grade\n• Cement: ${f.cementBrands}\n• Sand: ${f.sandType}\n• Brick work: Chamber bricks (${f.brickPrice})\n• Plastering: M-Sand with smooth inner and rough outer finish\n• Steel: Fe 500 ISI brand\n• Electrical wiring: Concealed ${f.electricalBrand}\n• Switches: ${f.switchBrand} @ Rs.${f.switchRate}` },
-    { title: "Work Not Included", content: `• Bore well / Open well\n• UG sump\n• Rain water harvesting\n• Pavement blocks\n• Compound wall & gate\n• Septic tank\n• Weathering course\n• EB, water & sanitary external connections` },
-    { title: "Extra Work Cost", content: `• UG Sump Brick work: Rs.${f.ugSumpBrick}/lit\n• UG Sump Tile work: Rs.${f.ugSumpTile}/lit\n• Septic Tank: Rs.${f.septicTank}/lit\n• Weathering course: Rs.${f.weatheringRate}/Sq.ft\n• Compound wall 4.5 inch: Rs.${f.compoundWall4_5}/RFT\n• Compound wall 9 inch: Rs.${f.compoundWall9}/RFT` },
-    { title: "Payment Procedure", content: `• Advance to Lintel Level: ${f.lintel}%\n• Lintel to Roof Level: ${f.roof}%\n• Before Inner Plastering: ${f.innerPlaster}%\n• Before Outer Plastering: ${f.outerPlaster}%\n• Before Tiles Work: ${f.tiles}%\n• Before Wiring & Painting: ${f.wiringPaint}%\n• Final Completion & Handover: ${f.final}%` },
-  ];
-
-  sections.forEach(sec => {
-    
-    sectionTitle(sec.title);
-    paragraph(sec.content);
-      // ✅ SPACE BETWEEN SECTIONS
-  y += 10;   // increase/decrease as needed
-  });
- 
-signature();
-  footer();
-
-  doc.save("Building_Quotation_Full.pdf");
+  },
 }
-
-
-  }
-};
 </script>
 
 <style>
-.v-application {
-  font-family: Roboto, sans-serif;
+:root {
+  --primary-gold: #c5a059;
+  --gold-deep: #a08145;
+  --dark-slate: #1e293b;
+  --slate-light: #64748b;
+  --bg-premium: #f4f7fa;
+  --card-border: rgba(226, 232, 240, 0.7);
+}
+
+.text-gold {
+  color: var(--primary-gold) !important;
+}
+.text-slate {
+  color: var(--dark-slate) !important;
+}
+.text-slate-light {
+  color: var(--slate-light) !important;
+}
+.text-white-70 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+.text-white-60 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.text-white {
+  color: #ffffff !important;
+}
+
+.app-container {
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+  background-color: var(--bg-premium) !important;
+}
+
+.main-content {
+  position: relative;
+  min-height: 100vh;
+}
+
+.bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50vh;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(197, 160, 89, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 10% 90%, rgba(30, 41, 59, 0.03) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* Glass Header */
+.glass-header {
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.logo-box {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.premium-card {
+  background: white !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 24px !important;
+  transition: all 0.3s ease;
+}
+
+.premium-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Valuation Card */
+.valuation-card {
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 28px !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.valuation-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(197, 160, 89, 0.1) 0%, transparent 70%);
+}
+
+.valuation-footer {
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Timeline Custom */
+.payment-timeline {
+  padding-left: 10px;
+}
+
+.payment-step {
+  position: relative;
+  padding-bottom: 15px;
+  padding-left: 25px;
+}
+
+.step-line {
+  position: absolute;
+  left: 3px;
+  top: 10px;
+  bottom: 0;
+  width: 2px;
+  background: #f1f5f9;
+}
+
+.payment-step:last-child .step-line {
+  display: none;
+}
+
+.step-indicator {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid white;
+  z-index: 1;
+}
+
+.payment-step:hover .step-indicator {
+  background: var(--primary-gold);
+  transform: scale(1.2);
+}
+
+.compact-input {
+  width: 45px;
+  border: none;
+  background: #f8fafc;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-weight: 800;
+  text-align: right;
+  color: var(--dark-slate);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.compact-input:focus {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Utilities */
+.tracking-tight {
+  letter-spacing: -0.5px;
+}
+.uppercase-tracking-small {
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+.letter-spacing-2 {
+  letter-spacing: 2px;
+}
+.border-white-10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.bg-slate-soft {
+  background-color: #f8fafc;
+}
+
+.shadow-premium {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.premium-btn {
+  text-transform: none;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.premium-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2) !important;
+}
+
+.group-header {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--slate-light);
+  display: flex;
+  align-items: center;
+}
+
+.sticky-sidebar {
+  position: sticky;
+  top: 110px;
+}
+
+.glass-footer {
+  backdrop-filter: blur(10px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.premium-card {
+  animation: fadeIn 0.5s ease backwards;
+}
+
+.v-col:nth-child(1) .premium-card {
+  animation-delay: 0.1s;
+}
+.v-col:nth-child(2) .premium-card {
+  animation-delay: 0.2s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .sticky-sidebar {
+    position: relative;
+    top: 0;
+  }
 }
 </style>
-
