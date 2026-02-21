@@ -63,6 +63,7 @@ export const useEstimateStore = defineStore('estimate', {
       wiringPaint: 0,
       final: 0,
     },
+    attachments: [],
   }),
   getters: {
     totalAmount: (state) => {
@@ -87,6 +88,12 @@ export const useEstimateStore = defineStore('estimate', {
     },
     updateLogo(logoData) {
       this.company.logo = logoData
+    },
+    addAttachment(fileData) {
+      this.attachments.push(fileData)
+    },
+    removeAttachment(index) {
+      this.attachments.splice(index, 1)
     },
   },
 })

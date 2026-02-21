@@ -1,7 +1,8 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { PDFDocument } from 'pdf-lib'
 
-export const generateEstimatePDF = (estimate, outputType = 'save') => {
+export const generateEstimatePDF = async (estimate, outputType = 'save') => {
   const doc = new jsPDF('p', 'pt', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const pageHeight = doc.internal.pageSize.height
@@ -20,16 +21,22 @@ export const generateEstimatePDF = (estimate, outputType = 'save') => {
   /* ===== HEADER ===== */
   const header = () => {
     if (company.logo) {
-      doc.addImage(company.logo, 'PNG', 40, 20, 50, 50)
+      try {
+        doc.addImage(company.logo, 'PNG', 40, 20, 50, 50)
+      } catch (e) {
+        console.error('Logo add error:', e)
+      }
     }
     doc.setFont('times', 'bold')
     doc.setFontSize(16)
     doc.setTextColor(197, 160, 89) // Gold color
-    doc.text(company.name, pageWidth / 2, 35, { align: 'center' })
+    doc.text(company.name || 'URUDHI CONSTRUCTION', pageWidth / 2, 35, { align: 'center' })
 
     doc.setFontSize(10)
     doc.setTextColor(30, 41, 59) // Dark Slate
-    const phoneDisplay = company.phone2 ? `${company.phone} / ${company.phone2}` : company.phone
+    const phoneDisplay = company.phone2
+      ? `${company.phone} / ${company.phone2}`
+      : company.phone || ''
     doc.text(`${safe(company.owner)} | ${phoneDisplay}`, pageWidth / 2, 50, { align: 'center' })
 
     doc.setDrawColor(197, 160, 89)
@@ -102,7 +109,7 @@ export const generateEstimatePDF = (estimate, outputType = 'save') => {
 
   doc.text(
     `Dear Sir / Madam,
-
+ 
 We offer our lowest rate and amount to construct a residential building with the following specifications and conditions. We assure quality materials, skilled workmanship, and timely completion of work.`,
     40,
     y,
@@ -115,7 +122,7 @@ We offer our lowest rate and amount to construct a residential building with the
     theme: 'grid',
     head: [['Floor', 'Area (Sq.ft)', 'Rate (Rs)', 'Amount (Rs)']],
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255] },
-    body: f.floors.map((fl) => [
+    body: (f.floors || []).map((fl) => [
       fl.name,
       fl.sqft,
       fl.rate,
@@ -125,7 +132,7 @@ We offer our lowest rate and amount to construct a residential building with the
 
   y = doc.lastAutoTable.finalY + 30
 
-  const total = f.floors.reduce((sum, fl) => sum + fl.sqft * fl.rate, 0)
+  const total = (f.floors || []).reduce((sum, fl) => sum + fl.sqft * fl.rate, 0)
   doc.setFont('times', 'bold')
   doc.text(`Total Estimated Amount: Rs.${total.toLocaleString('en-IN')}`, pageWidth - 40, y, {
     align: 'right',
@@ -203,8 +210,54 @@ We offer our lowest rate and amount to construct a residential building with the
   signature()
   footer()
 
-  if (outputType === 'dataurl') {
-    return doc.output('dataurlstring')
+  // Convert jsPDF to ArrayBuffer
+  const pdfBytes = doc.output('arraybuffer')
+
+  // Use pdf-lib to merge attachments
+  const finalDoc = await PDFDocument.load(pdfBytes)
+
+  if (f.attachments && f.attachments.length > 0) {
+    for (const attachment of f.attachments) {
+      const dataUrl = attachment.data
+      const bytes = await fetch(dataUrl).then((res) => res.arrayBuffer())
+
+      if (attachment.type.includes('pdf')) {
+        const attachDoc = await PDFDocument.load(bytes)
+        const copiedPages = await finalDoc.copyPages(attachDoc, attachDoc.getPageIndices())
+        copiedPages.forEach((page) => finalDoc.addPage(page))
+      } else if (attachment.type.includes('image')) {
+        let image
+        if (attachment.type.includes('png')) {
+          image = await finalDoc.embedPng(bytes)
+        } else {
+          image = await finalDoc.embedJpg(bytes)
+        }
+
+        const page = finalDoc.addPage([pageWidth, pageHeight])
+        const { width, height } = image.scaleToFit(pageWidth - 80, pageHeight - 80)
+        page.drawImage(image, {
+          x: pageWidth / 2 - width / 2,
+          y: pageHeight / 2 - height / 2,
+          width,
+          height,
+        })
+      }
+    }
   }
-  doc.save(`Estimate_${client.name || 'Project'}.pdf`)
+
+  const mergedPdfBytes = await finalDoc.save()
+
+  if (outputType === 'dataurl') {
+    const base64 = await finalDoc.saveAsBase64({ dataUri: true })
+    return base64
+  }
+
+  // Save the merged PDF
+  const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Estimate_${client.name || 'Project'}.pdf`
+  link.click()
+  URL.revokeObjectURL(url)
 }

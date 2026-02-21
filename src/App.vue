@@ -250,6 +250,55 @@
               </v-card-text>
             </v-card>
 
+            <!-- Supporting Documents & Attachments -->
+            <v-card class="premium-card mt-8" elevation="0">
+              <SectionHeader
+                title="Appendices"
+                subtitle="Supporting Documents"
+                icon="mdi-attachment"
+              />
+              <v-card-text class="px-6 pb-6">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="text-caption text-grey-darken-1 mb-4 font-weight-medium">
+                      Attach site photos, architectural plans, or supplementary PDF agreements to be appended at the end of your quotation.
+                    </p>
+                    <v-file-input
+                      label="Upload Images or PDFs"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-plus-box-outline"
+                      prepend-icon=""
+                      class="rounded-xl"
+                      accept="image/*,application/pdf"
+                      multiple
+                      hide-details
+                      @change="handleAttachmentUpload"
+                    ></v-file-input>
+                  </v-col>
+                </v-row>
+
+                <div v-if="store.attachments && store.attachments.length > 0" class="mt-6">
+                  <div class="text-overline font-weight-black text-slate-light mb-2">ATTACHED FILES ({{ store.attachments.length }})</div>
+                  <v-list class="bg-slate-soft rounded-xl pa-2">
+                    <v-list-item
+                      v-for="(file, index) in store.attachments"
+                      :key="index"
+                      class="mb-1 rounded-lg bg-white border"
+                    >
+                      <template #prepend>
+                        <v-icon :icon="file.type.includes('pdf') ? 'mdi-file-pdf-box' : 'mdi-file-image-outline'" :color="file.type.includes('pdf') ? 'error' : 'gold'"></v-icon>
+                      </template>
+                      <v-list-item-title class="text-caption font-weight-bold text-slate">{{ file.name }}</v-list-item-title>
+                      <template #append>
+                        <v-btn icon="mdi-close" variant="text" density="comfortable" color="grey" @click="store.removeAttachment(index)"></v-btn>
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                </div>
+              </v-card-text>
+            </v-card>
+
             <!-- Comprehensive Material Selection -->
             <v-card class="premium-card mt-8" elevation="0">
               <SectionHeader
@@ -824,7 +873,8 @@
             rounded="lg"
             class="text-white font-weight-black shadow-sm"
             @click="exportPdf"
-            :disabled="!isFormValid"
+            :disabled="!isFormValid || isGenerating"
+            :loading="isGenerating"
           >
             GENERATE
           </v-btn>
@@ -890,12 +940,42 @@ export default {
       }
       reader.readAsDataURL(file)
     },
-    exportPdf() {
-      generateEstimatePDF(this.store.$state)
+    async handleAttachmentUpload(event) {
+      const files = event.target.files
+      if (!files) return
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const reader = new FileReader()
+        
+        reader.onload = () => {
+          this.store.addAttachment({
+            name: file.name,
+            type: file.type,
+            data: reader.result // Base64 string
+          })
+        }
+        reader.readAsDataURL(file)
+      }
+      // Reset input soSame file can be uploaded again if removed
+      event.target.value = ''
     },
-    handlePreview() {
-      this.previewPdfUrl = generateEstimatePDF(this.store.$state, 'dataurl')
-      this.showPreview = true
+    async exportPdf() {
+      this.isGenerating = true
+      try {
+        await generateEstimatePDF(this.store.$state)
+      } finally {
+        this.isGenerating = false
+      }
+    },
+    async handlePreview() {
+      this.isGenerating = true
+      try {
+        this.previewPdfUrl = await generateEstimatePDF(this.store.$state, 'dataurl')
+        this.showPreview = true
+      } finally {
+        this.isGenerating = false
+      }
     },
     updatePayment(key, value, event) {
       const num = Math.floor(Number(value) || 0)
@@ -918,6 +998,7 @@ export default {
     return {
       showPreview: false,
       previewPdfUrl: null,
+      isGenerating: false,
     }
   },
 }
